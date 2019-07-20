@@ -1,0 +1,240 @@
+
+
+
+Decodes Informations from Deutsche Post Datamatrix Codes PYTHON
+https://gist.github.com/5263/1208694
+
+
+
+https://github.com/alchemy-fr/tcpdf/blob/master/datamatrix.php
+case ENC_ASCII: // ASCII character 0 to 127
+$status = (($chr >= 0) AND ($chr <= 127));
+
+
+FNC1 case ENC_BASE256:
+$status = (($chr == 232) OR ($chr == 233) OR ($chr == 234) OR ($chr == 241));
+
+----------------------------------------------------------------------------------------------------
+< GS >2401234567890< GS >10AA12345< GS >11123456211< GS >961234567
+ZXing.Net supports the GS symbol with the ASCII encoder since version 0.15. It replaces the ASCII 29 value with the FNC1 codeword (232) in the resulting datamatrix image.
+writer .Write((char)29 + "2401234567890" + (char)29 + "10AA12345" + (char)29 + "11123456" + (char)29 + "211" + (char)29 + "961234567");
+
+----------------------------------------------------------------------------------------------------
+https://stackoverflow.com/questions/33093751/add-a-fnc1-character-to-code-created-with-tcpdf-datamatrix/33099443#33099443
+https://stackoverflow.com/questions/31318648/what-is-the-actual-hex-binary-value-of-the-gs1-fnc1-character/31322815#31322815
+Looking at the code for version 1.0.008 (from 2014-05-06) in /tcpdf/include/barcodes/datamatrix.php I cannot see any comprehensive treatment of the special function or macro characters in Data Matrix so you are probably out of luck.
+----------------------------------------------------------------------------------------------------
+Pydmtx returns FNC1 as "\x1d" aka information separator 3
+{FNC1}010031234567890621123456789012{FNC1}300144
+{FNC1}019501234567890310000123{FNC1}17150801
+
+https://www.charbase.com/001d-unicode-information-separator-three
+Your Browser	n/a
+Index	U+001D (29)
+Class	Control (Cc)
+Block	Basic Latin
+Java Escape	"\u001d"
+Javascript Escape	"\x1d"
+Python Escape	u'\x1d'
+HTML Escapes	&#29; &#x001d;
+URL Encoded	q=%1D
+UTF8	1d
+UTF16	001d
+
+
+----------------------------------------------------------------------------------------------------
+&#232;
+&#xE8;
+UTF-8-Kodierung:	0xC3 0xA8
+UTF-16-Kodierung:	
+232	FNC1
+----------------------------------------------------------------------------------------------------
+Um einen FNC1 zu codieren, muss Escape-Sequenzen aktiviert sein.
+Fügen Sie FNC1 nicht nach dem letzten Datenfeld ein.
+Fügen Sie FNC1 ein, auch wenn die maximale Feldlänge verwendet wird.
+----------------------------------------------------------------------------------------------------
+\x1d - GS, Group Separator, ASCII Code 29 (Hex 1D)
+\x1e - RS, Record Separator, ASCII Code 30 (Hex 1E)
+\x04 - EOT, End of Transmission, ASCII Code 04 (Hex 04)
+
+
+Format 06 Beispiel: [)><RS>06<GS>SP66831000G<GS>SV9117327G<GS>S16S3.0G<RS><EOT> 
+Kodierte Daten:     [)>\x1e06\x1dSP66831000G\x1dSV9117327G\x1dS16S3.0G\x1e\x04
+----------------------------------------------------------------------------------------------------
+Constants summary
+integer	ENC_ASCII
+ASCII encoding: ASCII character 0 to 127 (1 byte per CW)
+#0 integer	ENC_C40   	C40 encoding: Upper-case alphanumeric (3/2 bytes per CW)
+#1 integer	ENC_TXT 	TEXT encoding: Lower-case alphanumeric (3/2 bytes per CW)
+#2 integer	ENC_X12 	X12 encoding: ANSI X12 (3/2 byte per CW)
+#3 integer	ENC_EDF 	EDIFACT encoding: ASCII character 32 to 94 (4/3 bytes per CW)
+#4 integer	ENC_BASE256 	BASE 256 encoding: ASCII character 0 to 255 (1 byte per CW)
+#5 integer	ENC_ASCII_EXT 	ASCII extended encoding: ASCII character 128 to 255 (1/2 byte per CW)
+#6 integer	ENC_ASCII_NUM 	ASCII number encoding: ASCII digits (2 bytes per CW)
+----------------------------------------------------------------------------------------------------
+AI(01) GTIN + AI(21) Serial Number + AI(30) Quantity Encoded in GS1 DataMatrix
+Encodation: <F1>010031234567890621123456789012<F1>300144 
+Encodation: <F1>010031234567890621123456789012<GS>300144
+In either case above, the human-readable and transmitted data are exactly the same:
+Human Readable Interpretation (HRI): 
+(01) 00312345678906 (21) 123456789012 (30) 0144
+Transmitted (with Symbology Identifier):     ]d2010031234567890621123456789012<GS>300144
+Transmitted (without Symbology Identifier):     010031234567890621123456789012<GS>300144
+----------------------------------------------------------------------------------------------------
+
+----------------------------------------------------------------------------------------------------
+https://stackoverflow.com/questions/31318648/what-is-the-actual-hex-binary-value-of-the-gs1-fnc1-character/31322815#31322815
+
+FNC1 - Structured Data flag character indicating GS1 and AIM formatting AND group separator formatting character, amongst other uses.
+FNC2 - Message Append flag character for buffering the data in groups of symbols for a single read.
+FNC3 - Reader Programming flag character for device configuration purposes.
+FNC4 - Extended ASCII formatting character for encoding characters with ordinals 128-255.
+
+----------------------------------------------------------------------------------------------------
+
+#################################################
+#
+# cv2 filter for datamatrix 
+#
+#################################################
+
+# https://stackoverflow.com/questions/44926316/how-to-locate-and-read-data-matrix-code-with-python/45028016#45028016
+
+import matplotlib.pyplot as plt
+import numpy as np
+import cv2
+
+well = plt.imread('https://i.stack.imgur.com/kqHkw.png')
+well = cv2.cvtColor(well, cv2.COLOR_BGRA2GRAY)
+plt.subplot(151); plt.title('A')
+plt.imshow(well)
+
+harris = cv2.cornerHarris(well,4, 1,0.00)
+plt.subplot(152); plt.title('B')
+plt.imshow(harris)
+
+x, thr = cv2.threshold(harris, 0.1 * harris.max(), 255, cv2.THRESH_BINARY)
+thr = thr.astype('uint8')
+plt.subplot(153); plt.title('C')
+plt.imshow(thr)
+
+dst, contours, hierarchy = cv2.findContours(thr.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+areas = map(lambda x: cv2.contourArea(cv2.convexHull(x)), contours)
+max_i = areas.index(max(areas))
+d = cv2.drawContours(np.zeros_like(thr), contours, max_i, 255, 1)
+plt.subplot(154); plt.title('D')
+plt.imshow(d)
+
+rect =cv2.minAreaRect(contours[max_i])
+box = cv2.boxPoints(rect)
+box = np.int0(box)
+e= cv2.drawContours(well,[box],0,1,1)
+plt.subplot(155); plt.title('E')
+plt.imshow(e)
+
+plt.show()
+
+#################################################
+#
+# How to read data matrix code in Python?
+#
+#################################################
+
+https://stackoverflow.com/questions/48686574/how-to-read-data-matrix-code-in-python/48761158#48761158
+
+import cv2
+from pylibdmtx.pylibdmtx import decode
+import ctypes  
+
+def Mbox(title, text, style):
+    return ctypes.windll.user32.MessageBoxW(0, text, title, style)
+
+# Read file using OpenCV
+Mbox('Data Matrix', str(decode(cv2.imread('C:/Users/User/Desktop/Zdjecia_QrCode/again2.png'))), 1)
+
+
+#################################################
+Decoding Datamatrix as digits using pylibdmtx
+#################################################
+# https://stackoverflow.com/questions/51676214/decoding-datamatrix-as-digits-using-pylibdmtx/51686976#51686976
+
+import numpy as np
+import cv2
+from pylibdmtx import pylibdmtx
+
+if __name__ == '__main__':
+    image = cv2.imread('image.jpg', cv2.IMREAD_UNCHANGED);
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    ret,thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
+    msg = pylibdmtx.decode(thresh)
+    print(msg)
+
+
+
+#################################################
+If you don't have mb_convert_encoding you can try using a preg_replace_callback to UCS-4 encode the string and then use bin2hex, something like:
+#################################################
+
+$string = "★ PHP UTF-8 Sucks! ★";
+$entity = preg_replace_callback('/[\x{80}-\x{10FFFF}]/u', function ($m) {
+    $char = current($m);
+    $utf = iconv('UTF-8', 'UCS-4', $char);
+    return sprintf("&#x%s;", ltrim(strtoupper(bin2hex($utf)), "0"));
+}, $string);
+echo $entity;
+
+
+
+
+
+0x00 = NULL
+0x04 = EOT (End of transmission)
+
+od -An -vtu1 # for decimal 
+od -An -vtx1 # for hexadecimal
+
+Binario a decimal  $ echo "$((2#101010101))" 341 
+Binario a hexadecimal  $ printf '%x\n' "$((2#101010101))" 155 
+
+
+Puoi usare PHP:
+$ php -r 'printf("%b", 11);' # 1011
+
+Perl:
+$ perl -e 'print unpack("B*", pack("c", 11))' # 00001011
+$ perl -e 'print unpack("B*", pack("C", 11))' # 00001011
+$ perl -e 'print unpack("B*", pack("W", 11))' # 00001011
+$ perl -e 'print unpack("B*", pack("n", 11))' # 0000000000001011
+$ perl -e 'print unpack("B*", pack("N", 11))' # 00000000000000000000000000001011
+
+POSIX Awk svnpenn / stdlib :
+$ awklib 'BEGIN {print mt_basecon(1011, 2, 16)}' # B
+$ awklib 'BEGIN {print mt_basecon(1011, 2, 10)}' # 11
+$ awklib 'BEGIN {print mt_basecon("B", 16, 2)}' # 1011
+$ awklib 'BEGIN {print mt_basecon(11, 10, 2)}' # 1011
+
+
+253	FD	11111101 375  # Hex bevor
+63  3F	111111	 77   # Hex danach
+
+
+
+Installing Zint Barcode Generator in Ubuntu 10.04
+http://zint.org.uk/Manual.aspx?type=p&page=4
+download from sourceforge http://sourceforge.net/projects/zint/
+http://www.benbernier.com/installing-zint-barcode-generator-in-ubuntu-10-04/
+https://www.rapidtables.com/code/text/ascii-table.html
+
+$ sudo ap-get install g++
+$ sudo apt-get install cmake
+$ sudo apt-get install libqt4-dev
+$ cd /usr/local/src
+$ sudo tar zxvf /home/{username}/Downloads/zint-version.tar.gz
+$ cd zint-version
+$ sudo cmake .
+$ sudo make
+$ sudo make install
+
+
+zint -d "This Text"
+zint -o datamatrix.png -b 71--eci=23 -d "Data to encode" 
