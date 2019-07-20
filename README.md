@@ -7,13 +7,13 @@
 
 * php generator.php
 
-[![Editor Screen](https://raw.github.com/maranemil/random_datamatrix_generator/master/screen_php_gen.png)](#features)
+[![Editor Screen](https://raw.githubusercontent.com/maranemil/random_datamatrix_generator/master/screens/screen_php_gen.png)](#features)
 
 ### Python3
 
 * python3  generator.py
 
-[![Editor Screen](https://raw.github.com/maranemil/random_datamatrix_generator/master/screen py3_gen.png)](#features)
+[![Editor Screen](https://raw.githubusercontent.com/maranemil/random_datamatrix_generator/master/screens/screen%20py3_gen.png)](#features)
 
 ### ------------------------------------------------------------
 
