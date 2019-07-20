@@ -31,7 +31,7 @@
 + od -An -vtx1 # for hexadecimal
 
 
-### TCPDF ( PHP CLASS DataMatrix generator )
+### TCPDF ( PHP DataMatrix generator )
 
 #### Installation
 
