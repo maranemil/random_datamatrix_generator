@@ -51,3 +51,10 @@
 #### Matrixcode-Checker
 * https://www.deutschepost.de/de/p/premiumadress/downloads.html
 
+
+#### Matrixcode-Checker 26x26 cmd
+* gs -sDEVICE=jpeg -dPDFSETTINGS=/screen -r300x300 -dJPEGQ=55 -dQFactor=0.5 -dBATCH -dNOPAUSE -dSAFER -dQUIET -sOutputFile=/path/file.jpg /path/file.pdf
+* gs -sDEVICE=jpeg -dPDFSETTINGS=/prepress -r300x300 -dJPEGQ=55 -dQFactor=0.5 -dBATCH -dNOPAUSE -dSAFER -dQUIET -sOutputFile=/path/file.jpg /path/file.pdf
+* gs -sDEVICE=jpeg -dPDFSETTINGS=/ebook -r300 -dJPEGQ=55 -dQFactor=0.5 -dBATCH -dNOPAUSE -dSAFER -dQUIET -sOutputFile=/path/file.jpg /path/file.pdf
+* dmtxread -v -N 1 /path/file.jpg 2>&1 | head -n +2 | cut -d '-' -f1 | tr -d '[:space:]' | grep -i '26x26'
+
