@@ -1,10 +1,10 @@
 from pystrich.datamatrix import DataMatrixEncoder
-#import subprocess
+# import subprocess
 import os
-import sys
+#import sys
 
-#import binascii
-#import secrets
+# import binascii
+# import secrets
 import random
 
 # clean folder 
@@ -39,7 +39,7 @@ for x in range(1, 3):
     hex_output = hex_string.strip().replace(' ', '')
     hex_output = hex_output.replace("\n", '')
 
-    if (hex_sinput == hex_output):
+    if hex_sinput == hex_output:
         print("[ PYTHON DMTXREAD DECODED BIN2HEX REVERS OK] ")
         print("[ SINPUT HEX: " + hex_sinput + " ]")
         print("[ OUTPUT HEX: " + hex_output + " ]")
